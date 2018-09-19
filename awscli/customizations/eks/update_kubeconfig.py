@@ -16,7 +16,6 @@ import sys
 import errno
 import logging
 import subprocess
-import distutils
 
 from botocore.compat import OrderedDict
 
@@ -49,13 +48,10 @@ AUTH_GOGET_PATH = ("github.com/kubernetes-sigs/"
 
 
 def check_for_binary(binary):
-    try:
-        if distutils.spawn.find_executable(binary) is None:
-            return False
-    except KeyError:
-        LOG.warn("Your PATH variable might not be set.")
-        return False
-    return True
+    executable = binary
+    if is_windows:
+        executable = binary + ".exe"
+    return any(os.access(os.path.join(path, executable), os.X_OK) for path in os.environ["PATH"].split(os.pathsep))
 
 
 def warn_of_missing_dependencies():
